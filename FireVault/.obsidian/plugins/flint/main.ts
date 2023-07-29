@@ -2,11 +2,12 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 import * as firebase from 'firebase/app';
 
-import { StorageReference, getStorage, ref, uploadBytes, uploadBytesResumable, uploadString } from 'firebase/storage';
+import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, list } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
 import { initializeApp } from "firebase/app";
+import { url } from 'inspector';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -50,13 +51,45 @@ async function uploadFile(files: TFile[], index: number) {
 
 	//feed params into upload func from firebase
 	await uploadBytesResumable(pathRef, data).then((snapshot) => {
-		console.log('Uploaded a blob or file!');
-		new Notice(`file ${index} uploaded`);
-		//what about this change here
-		//or how about this one
+		console.log(`file ${index} uploaded successfully`);
 	  });			
 
 }
+
+async function downloadAllFiles(targetVault:string) {
+	const targetVaultRef = ref(storageRef, `${targetVault}`);
+	const vaultFileList = await list(targetVaultRef, { maxResults: 100});
+
+	for (let i = 0; i < vaultFileList.items.length; i++) {
+
+		try {
+		  downloadFile(`${vaultFileList.items[i]}`);
+		  
+		} catch (error) {
+		  console.log(`Error: ${error}`);
+		}
+	  }			
+}
+
+async function downloadFile(filePathString: string){
+
+	const filePathRef: StorageReference = ref(storage, filePathString);
+	const fileURL: string = await getDownloadURL(filePathRef);
+
+	const xhr = new XMLHttpRequest();
+	xhr.responseType = 'arraybuffer';
+	xhr.onload = (event) => {
+		const returnedFile = xhr.response;
+	}; 
+
+	xhr.open('GET', fileURL);
+	xhr.send();
+
+	return await fileURL, filePathString;
+	//place file in the same place as the firebase location in vault
+}
+
+
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
@@ -65,7 +98,7 @@ export default class MyPlugin extends Plugin {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('go-to-file', 'Upload Files', (evt: MouseEvent) => {
+		const uploadRibbon = this.addRibbonIcon('go-to-file', 'Upload Files', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('still runnin');
 
@@ -83,7 +116,17 @@ export default class MyPlugin extends Plugin {
 			new Notice('AHOY TRAVELLER!');
 		});
 		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		uploadRibbon.addClass('flint-upload-ribbon-class');
+
+		const downloadRibbon =  this.addRibbonIcon('up-and-down-arrows', 'Download Files', (evt: MouseEvent) => {
+			new Notice('Downloadin!');
+
+			downloadAllFiles('vault');
+			//param does nothing now, TODO: MAKE ADJUSTABLE
+		
+			new Notice('Downloaded~');
+		});
+		downloadRibbon.addClass('flint-download-ribbon-class');
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();

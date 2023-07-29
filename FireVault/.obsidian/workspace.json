@@ -138,20 +138,21 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "flint:Download Files": false,
+      "flint:Upload Files": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false,
-      "cinder-cloud:Upload Files": false
+      "command-palette:Open command palette": false
     }
   },
   "active": "57e18ed56ab946f4",
   "lastOpenFiles": [
     "test file.md",
-    "what about this folder/and this file.md",
     "what about this folder/HOW ABOUT THIS FILE THEN.md",
+    "what about this folder/and this file.md",
     "and this file",
     "what about this folder"
   ]

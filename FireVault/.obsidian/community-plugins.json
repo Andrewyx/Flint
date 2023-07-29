@@ -1,5 +1,6 @@
 [
   "sample-plugin",
   "andrews-plugin",
-  "cinder-cloud"
+  "cinder-cloud",
+  "flint"
 ]
