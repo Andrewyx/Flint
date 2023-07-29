@@ -1,0 +1,11 @@
+{
+	"id": "flint",
+	"name": "Flint",
+	"version": "1.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "This app uses cloud buckets to upload not files.",
+	"author": "Obsidian",
+	"authorUrl": "https://obsidian.md",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}
