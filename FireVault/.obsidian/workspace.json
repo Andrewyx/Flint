@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "c0daae8329daf16d",
+        "id": "d373b840d8989185",
         "type": "tabs",
         "children": [
           {
-            "id": "57e18ed56ab946f4",
+            "id": "4e835e688f4575ef",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "MY CODE FILE.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "MY CODE FILE.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "MY CODE FILE.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md"
+                "file": "MY CODE FILE.md"
               }
             }
           }
@@ -148,15 +148,17 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "d429040738eab54c",
+  "active": "4e835e688f4575ef",
   "lastOpenFiles": [
     "test file.md",
-    "and this file.md",
-    "HOW ABOUT THIS FILE THEN.md",
-    "undefined",
-    "what about this folder/and this file.md",
+    "MY CODE FILE.md",
     "what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "and this file",
-    "what about this folder"
+    "what about this folder/and this file.md",
+    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
+    "what about this folder/this is unexpected",
+    "what about this folder",
+    "and this file.md",
+    "undefined",
+    "and this file"
   ]
 }

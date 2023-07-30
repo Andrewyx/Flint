@@ -2,7 +2,7 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 import * as firebase from 'firebase/app';
 
-import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, list } from 'firebase/storage';
+import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, list, ListResult, listAll } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
@@ -29,11 +29,9 @@ const app = initializeApp(firebaseConfig);
 const storage = getStorage();
 const storageRef = ref(storage);
 
-const vaultsRef = ref(storage, 'vaults');
-const testfile = ref(storage, 'vaults/test file.md');
+let currentVaultName: string = 'vaults'; 
 
-const testFilePath = "C:/Users/andre/Documents/GitHub/CinderCloud/FireVault/test file.md";
-const otherTestFilePath = "C:/Users/andre/Downloads/Test File.txt"
+const vaultsRef = ref(storage, currentVaultName);
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -47,7 +45,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 async function uploadFile(files: TFile[], index: number) {
 
 	//Sequential calls for param information
-	const pathString: string = await `vaults/${files[index].name}`;
+	const pathString: string = await `${currentVaultName}/${files[index].path}`;
 	const pathRef: StorageReference = await ref(storage, pathString);
 	const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
 
@@ -59,52 +57,60 @@ async function uploadFile(files: TFile[], index: number) {
 }
 
 async function downloadAllFiles(targetVault:string) {
+	/**
+	 * @param targetVault is the target local vault where files will be written to
+	 */
+
 	const targetVaultRef = ref(storageRef, `${targetVault}`);
-	
-	const vaultFileList = await list(targetVaultRef, { maxResults: 100});
+	const vaultFileList = await listAll(targetVaultRef);
 
-	for (let i = 0; i < vaultFileList.items.length; i++) {
+	downloadCurrentDir(vaultFileList, 0);
+	//move this loop into another script to prevent confusion AKA make this a "private" method
+
+	//Ugly ugly code to find cloud folders TODO: make this more elegant
+
+
+}
+
+async function downloadCurrentDir(currentDirFileList: ListResult, depth: number) {
+
+	for (let i = 0; i < currentDirFileList.items.length; i++) {
 		console.log('attempting download');
-		try {
-			let remoteFilePath = vaultFileList.items[i].fullPath.split('/');
-			remoteFilePath.shift();
-			//remoteFilePath.unshift(`${this.app.vault.getName()}`)
-			
-			const localFilePath: string = remoteFilePath.join('/');
 
-			console.log(`Writting from File Path @: ${vaultFileList.items[i]} 
+		let remoteFilePath = currentDirFileList.items[i].fullPath.split('/');
+		remoteFilePath.shift();
+		const localFilePath: string = remoteFilePath.join('/');
+
+		console.log(`Writting from File Path @: ${currentDirFileList.items[i]} 
 			to file path ${localFilePath}`);
-
-			//const fileName = localFilePath.split('/').pop();
-
-			const file = await downloadFile(`${vaultFileList.items[i]}`);
-
-			await this.app.vault.createBinary(localFilePath, file);
-			//const currentTFile = await this.app.vault.getAbstractFileByPath(localFilePath);
-			//await this.app.vault.rename(currentTFile, )
-			await console.log('success!');
 			
+		const file = await downloadFile(`${currentDirFileList.items[i]}`);
+
+			//if folder does not exist, create
+		try {
+			await this.app.vault.createBinary(localFilePath, file);
+			await console.log('success!');
 		} catch (error) {
-			switch (error.code) {
-				case 'storage/object-not-found':
-				  // File doesn't exist
-				  break;
-				case 'storage/unauthorized':
-				  // User doesn't have permission to access the object
-				  break;
-				case 'storage/canceled':
-				  // User canceled the upload
-				  break;
-		  
-				case 'storage/unknown':
-				  // Unknown error occurred, inspect the server response
-				  break;
-				default:
-					console.log(error);
-					break;
-			  }
+			remoteFilePath.pop();
+			const localFolderPath: string = remoteFilePath.join('/');
+			await this.app.vault.createFolder(localFolderPath);
+			await this.app.vault.createBinary(localFilePath, file);
+			await console.log('success!');
 		}
-	  }			
+		
+
+
+
+	}
+	if(currentDirFileList.prefixes.length > 0){
+
+		for (let x = 0; x < currentDirFileList.prefixes.length; x++){
+			const localFolders = await listAll(currentDirFileList.prefixes[x]);
+			downloadCurrentDir(localFolders, depth + 1);
+			
+			//nasty recursion
+		}
+	}
 }
 
 async function downloadFile(filePathString: string){
@@ -138,6 +144,7 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		currentVaultName = await this.app.vault.getName();
 
 		// This creates an icon in the left ribbon.
 		const uploadRibbon = this.addRibbonIcon('go-to-file', 'Upload Files', (evt: MouseEvent) => {
@@ -163,7 +170,7 @@ export default class MyPlugin extends Plugin {
 		const downloadRibbon =  this.addRibbonIcon('up-and-down-arrows', 'Download Files', (evt: MouseEvent) => {
 			new Notice('Downloadin!');
 			
-			downloadAllFiles('vaults');
+			downloadAllFiles(currentVaultName);
 			//param does nothing now, TODO: MAKE ADJUSTABLE
 		
 			new Notice('Downloaded~');

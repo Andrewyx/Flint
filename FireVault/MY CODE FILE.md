@@ -9,3 +9,9 @@ function myFunction(a, b){
 ```
 
 ## It is quite odd
+
+```python
+def myCustomFunction(arg1, arg1):
+	return arg1 + arg2
+```
+
