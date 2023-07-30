@@ -8,6 +8,8 @@ import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable
 
 import { initializeApp } from "firebase/app";
 import { url } from 'inspector';
+import { resolve } from 'path';
+import { rejects } from 'assert';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -58,15 +60,49 @@ async function uploadFile(files: TFile[], index: number) {
 
 async function downloadAllFiles(targetVault:string) {
 	const targetVaultRef = ref(storageRef, `${targetVault}`);
+	
 	const vaultFileList = await list(targetVaultRef, { maxResults: 100});
 
 	for (let i = 0; i < vaultFileList.items.length; i++) {
-
+		console.log('attempting download');
 		try {
-		  downloadFile(`${vaultFileList.items[i]}`);
-		  
+			let remoteFilePath = vaultFileList.items[i].fullPath.split('/');
+			remoteFilePath.shift();
+			//remoteFilePath.unshift(`${this.app.vault.getName()}`)
+			
+			const localFilePath: string = remoteFilePath.join('/');
+
+			console.log(`Writting from File Path @: ${vaultFileList.items[i]} 
+			to file path ${localFilePath}`);
+
+			//const fileName = localFilePath.split('/').pop();
+
+			const file = await downloadFile(`${vaultFileList.items[i]}`);
+
+			await this.app.vault.createBinary(localFilePath, file);
+			//const currentTFile = await this.app.vault.getAbstractFileByPath(localFilePath);
+			//await this.app.vault.rename(currentTFile, )
+			await console.log('success!');
+			
 		} catch (error) {
-		  console.log(`Error: ${error}`);
+			switch (error.code) {
+				case 'storage/object-not-found':
+				  // File doesn't exist
+				  break;
+				case 'storage/unauthorized':
+				  // User doesn't have permission to access the object
+				  break;
+				case 'storage/canceled':
+				  // User canceled the upload
+				  break;
+		  
+				case 'storage/unknown':
+				  // Unknown error occurred, inspect the server response
+				  break;
+				default:
+					console.log(error);
+					break;
+			  }
 		}
 	  }			
 }
@@ -75,17 +111,23 @@ async function downloadFile(filePathString: string){
 
 	const filePathRef: StorageReference = ref(storage, filePathString);
 	const fileURL: string = await getDownloadURL(filePathRef);
+	console.log(`${fileURL}`);
 
-	const xhr = new XMLHttpRequest();
-	xhr.responseType = 'arraybuffer';
-	xhr.onload = (event) => {
-		const returnedFile = xhr.response;
-	}; 
+	const returnedFile = await new Promise<ArrayBuffer>((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		xhr.responseType = 'arraybuffer';
+		xhr.onload = (event) => {
+			const returnedFile: ArrayBuffer = xhr.response;
+			console.log('gottem on the remote');
+			resolve(returnedFile);
+		}; 
+	
+		xhr.open('GET', fileURL);
+		xhr.send();
+	})
 
-	xhr.open('GET', fileURL);
-	xhr.send();
 
-	return await fileURL, filePathString;
+	return await returnedFile;
 	//place file in the same place as the firebase location in vault
 }
 
@@ -120,8 +162,8 @@ export default class MyPlugin extends Plugin {
 
 		const downloadRibbon =  this.addRibbonIcon('up-and-down-arrows', 'Download Files', (evt: MouseEvent) => {
 			new Notice('Downloadin!');
-
-			downloadAllFiles('vault');
+			
+			downloadAllFiles('vaults');
 			//param does nothing now, TODO: MAKE ADJUSTABLE
 		
 			new Notice('Downloaded~');
