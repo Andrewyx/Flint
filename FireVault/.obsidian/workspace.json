@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "MY CODE FILE.md",
+                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "MY CODE FILE.md",
+                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "MY CODE FILE.md",
+                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "MY CODE FILE.md"
+                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md"
               }
             }
           }
@@ -150,13 +150,16 @@
   },
   "active": "4e835e688f4575ef",
   "lastOpenFiles": [
-    "test file.md",
     "MY CODE FILE.md",
+    "test file.md",
     "what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "what about this folder/and this file.md",
+    "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/this is unexpected",
+    "what about this folder/and this file.md",
     "what about this folder",
+    "cool folder/cool nested FOLDER",
+    "cool folder",
     "and this file.md",
     "undefined",
     "and this file"

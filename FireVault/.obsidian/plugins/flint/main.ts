@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, addIcon } from 'obsidian';
 
 import * as firebase from 'firebase/app';
 
@@ -86,7 +86,6 @@ async function downloadCurrentDir(currentDirFileList: ListResult, depth: number)
 			
 		const file = await downloadFile(`${currentDirFileList.items[i]}`);
 
-			//if folder does not exist, create
 		try {
 			await this.app.vault.createBinary(localFilePath, file);
 			await console.log('success!');
@@ -98,9 +97,6 @@ async function downloadCurrentDir(currentDirFileList: ListResult, depth: number)
 			await console.log('success!');
 		}
 		
-
-
-
 	}
 	if(currentDirFileList.prefixes.length > 0){
 
@@ -138,16 +134,18 @@ async function downloadFile(filePathString: string){
 }
 
 
-
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 		currentVaultName = await this.app.vault.getName();
+		
 
+		
+		
 		// This creates an icon in the left ribbon.
-		const uploadRibbon = this.addRibbonIcon('go-to-file', 'Upload Files', (evt: MouseEvent) => {
+		const uploadRibbon = this.addRibbonIcon('upload', 'Upload Files', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('still runnin');
 
@@ -167,7 +165,9 @@ export default class MyPlugin extends Plugin {
 		// Perform additional things with the ribbon
 		uploadRibbon.addClass('flint-upload-ribbon-class');
 
-		const downloadRibbon =  this.addRibbonIcon('up-and-down-arrows', 'Download Files', (evt: MouseEvent) => {
+		const testUI = this.addSettingTab
+
+		const downloadRibbon =  this.addRibbonIcon('download', 'Download Files', (evt: MouseEvent) => {
 			new Notice('Downloadin!');
 			
 			downloadAllFiles(currentVaultName);

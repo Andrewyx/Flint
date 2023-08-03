@@ -2,5 +2,6 @@
   "sample-plugin",
   "andrews-plugin",
   "cinder-cloud",
-  "flint"
+  "flint",
+  "hot-reload"
 ]
