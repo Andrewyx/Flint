@@ -1,8 +1,8 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, addIcon } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal} from 'obsidian';
 
 import * as firebase from 'firebase/app';
 
-import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, list, ListResult, listAll } from 'firebase/storage';
+import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, ListResult, listAll } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
@@ -37,9 +37,17 @@ interface MyPluginSettings {
 	mySetting: string;
 }
 
+interface Book {
+	title: string;
+	author: string;
+  }
+
+
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
+
+
 
 
 async function uploadFile(files: TFile[], index: number) {
@@ -56,23 +64,17 @@ async function uploadFile(files: TFile[], index: number) {
 
 }
 
-async function downloadAllFiles(targetVault:string) {
+async function importVault(targetVault:string) {
 	/**
 	 * @param targetVault is the target local vault where files will be written to
 	 */
-
-	const targetVaultRef = ref(storageRef, `${targetVault}`);
-	const vaultFileList = await listAll(targetVaultRef);
-
-	downloadCurrentDir(vaultFileList, 0);
-	//move this loop into another script to prevent confusion AKA make this a "private" method
-
-	//Ugly ugly code to find cloud folders TODO: make this more elegant
-
-
+	const targetVaultRef: StorageReference = ref(storageRef, `${targetVault}`);
+	const vaultFileList: ListResult = await listAll(targetVaultRef);
+	//pass in all files and prefixes (folders) into download function.
+	downloadToLocal(vaultFileList);
 }
 
-async function downloadCurrentDir(currentDirFileList: ListResult, depth: number) {
+async function downloadToLocal(currentDirFileList: ListResult) {
 
 	for (let i = 0; i < currentDirFileList.items.length; i++) {
 		console.log('attempting download');
@@ -102,8 +104,7 @@ async function downloadCurrentDir(currentDirFileList: ListResult, depth: number)
 
 		for (let x = 0; x < currentDirFileList.prefixes.length; x++){
 			const localFolders = await listAll(currentDirFileList.prefixes[x]);
-			downloadCurrentDir(localFolders, depth + 1);
-			
+			downloadToLocal(localFolders);
 			//nasty recursion
 		}
 	}
@@ -141,13 +142,10 @@ export default class MyPlugin extends Plugin {
 		await this.loadSettings();
 		currentVaultName = await this.app.vault.getName();
 		
-
-		
-		
 		// This creates an icon in the left ribbon.
 		const uploadRibbon = this.addRibbonIcon('upload', 'Upload Files', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
-			new Notice('still runnin');
+			new Notice('Attempting Upload');
 
 			const files = this.app.vault.getMarkdownFiles()
 			
@@ -155,22 +153,19 @@ export default class MyPlugin extends Plugin {
 
 			  try {
 				uploadFile(files, i);
-				
 			  } catch (error) {
 				console.log(`Error: ${error}`);
 			  }
 			}			
-			new Notice('AHOY TRAVELLER!');
+			new Notice('Success!');
 		});
 		// Perform additional things with the ribbon
 		uploadRibbon.addClass('flint-upload-ribbon-class');
 
-		const testUI = this.addSettingTab
-
 		const downloadRibbon =  this.addRibbonIcon('download', 'Download Files', (evt: MouseEvent) => {
 			new Notice('Downloadin!');
 			
-			downloadAllFiles(currentVaultName);
+			importVault(currentVaultName);
 			//param does nothing now, TODO: MAKE ADJUSTABLE
 		
 			new Notice('Downloaded~');
@@ -179,7 +174,7 @@ export default class MyPlugin extends Plugin {
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		statusBarItemEl.setText('Flint Active');
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -218,6 +213,17 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+
+			id:'import-cloud-vault',
+			name:'Import Vault from Cloud',
+			callback: () => {
+				const testModal = new CloudVaultSelectModal(this.app);
+				testModal.open();	
+			}
+
+		});
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 
@@ -244,6 +250,8 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
+//Modals and hotkey tabs!
+//TODO: 
 class SampleModal extends Modal {
 	constructor(app: App) {
 		super(app);
@@ -259,6 +267,59 @@ class SampleModal extends Modal {
 		contentEl.empty();
 	}
 }
+
+//object structure will 
+interface FirebaseVault {
+	title: string;
+	ref?: string;
+  }
+  
+
+function fetchFirebaseVaults(params:type) {
+	
+} 
+//contain a list of all vaults in the firebase bucket
+const ALL_FIREBASE_VAULTS = [
+	{
+		title: "How to Take Smart Notes",
+	},
+	{
+		title: "Thinking, Fast and Slow",
+	},
+	{
+		title: "Deep Work",
+	},
+];
+
+export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
+
+	// Returns all available suggestions.
+	getSuggestions(query: string): FirebaseVault[] {
+		return ALL_FIREBASE_VAULTS.filter((vault) =>
+		vault.title.toLowerCase().includes(query.toLowerCase())
+		);
+	}
+
+	// Renders each suggestion item.
+	renderSuggestion(vault: FirebaseVault, el: HTMLElement) {
+		el.createEl("div", { text: vault.title });
+		el.createEl("small", { text: vault.ref });
+	}
+
+	// Perform action on the selected suggestion.
+	onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
+		new Notice(`Selected ${vault.title}`);
+		//change some current vault value
+	}
+}
+
+
+//TODO: User input to select which vaults are to be uploaded under this section
+
+/* 
+Nah nah, give a list of all available firebase vaults with a modal and have the user select the one they would like to import from
+Then, rename the vault name to the selected cloud vault and pull
+*/
 
 class SampleSettingTab extends PluginSettingTab {
 	plugin: MyPlugin;

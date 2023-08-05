@@ -1,1 +1,8 @@
-{}
+{
+  "flint:open-selection-modal": [
+    {
+      "modifiers": [],
+      "key": "F8"
+    }
+  ]
+}

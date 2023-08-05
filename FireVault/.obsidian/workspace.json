@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
                 "mode": "source",
                 "source": false
               }
@@ -65,7 +65,8 @@
               "state": {}
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -85,7 +86,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +103,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md",
+                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,16 +126,16 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "what about this folder/HOW ABOUT THIS FILE THEN.md"
+                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md"
               }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -148,11 +149,12 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "4e835e688f4575ef",
+  "active": "d3a463fa6a0790b3",
   "lastOpenFiles": [
+    "2023-08-04.md",
+    "what about this folder/HOW ABOUT THIS FILE THEN.md",
     "MY CODE FILE.md",
     "test file.md",
-    "what about this folder/HOW ABOUT THIS FILE THEN.md",
     "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/this is unexpected",
