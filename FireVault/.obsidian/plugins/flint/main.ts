@@ -1,15 +1,13 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal} from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal, FileSystemAdapter, normalizePath} from 'obsidian';
 
-import * as firebase from 'firebase/app';
 
 import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, ListResult, listAll } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
 import { initializeApp } from "firebase/app";
-import { url } from 'inspector';
-import { resolve } from 'path';
-import { rejects } from 'assert';
+
+import { rename } from 'fs';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -29,9 +27,10 @@ const app = initializeApp(firebaseConfig);
 const storage = getStorage();
 const storageRef = ref(storage);
 
-let currentVaultName: string = 'vaults'; 
+//Use this reference
+const vaultRef: StorageReference = ref(storageRef, 'vaults');
 
-const vaultsRef = ref(storage, currentVaultName);
+let currentVaultName: string = 'vaults'; 
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -54,7 +53,7 @@ async function uploadFile(files: TFile[], index: number) {
 
 	//Sequential calls for param information
 	const pathString: string = await `${currentVaultName}/${files[index].path}`;
-	const pathRef: StorageReference = await ref(storage, pathString);
+	const pathRef: StorageReference = await ref(vaultRef, pathString);
 	const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
 
 	//feed params into upload func from firebase
@@ -68,8 +67,10 @@ async function importVault(targetVault:string) {
 	/**
 	 * @param targetVault is the target local vault where files will be written to
 	 */
-	const targetVaultRef: StorageReference = ref(storageRef, `${targetVault}`);
+
+	const targetVaultRef: StorageReference = ref(vaultRef, `${targetVault}`);
 	const vaultFileList: ListResult = await listAll(targetVaultRef);
+
 	//pass in all files and prefixes (folders) into download function.
 	downloadToLocal(vaultFileList);
 }
@@ -80,13 +81,13 @@ async function downloadToLocal(currentDirFileList: ListResult) {
 		console.log('attempting download');
 
 		let remoteFilePath = currentDirFileList.items[i].fullPath.split('/');
-		remoteFilePath.shift();
+		remoteFilePath = remoteFilePath.slice(2);
 		const localFilePath: string = remoteFilePath.join('/');
 
 		console.log(`Writting from File Path @: ${currentDirFileList.items[i]} 
 			to file path ${localFilePath}`);
 			
-		const file = await downloadFile(`${currentDirFileList.items[i]}`);
+		const file = await fetchFile( `${currentDirFileList.items[i]}` );
 
 		try {
 			await this.app.vault.createBinary(localFilePath, file);
@@ -110,7 +111,7 @@ async function downloadToLocal(currentDirFileList: ListResult) {
 	}
 }
 
-async function downloadFile(filePathString: string){
+async function fetchFile(filePathString: string){
 
 	const filePathRef: StorageReference = ref(storage, filePathString);
 	const fileURL: string = await getDownloadURL(filePathRef);
@@ -275,27 +276,37 @@ interface FirebaseVault {
   }
   
 
-function fetchFirebaseVaults(params:type) {
+async function fetchFirebaseVaults(): Promise<FirebaseVault[]> {
+	/** Generate/Update list of ALL_FIREBASE_VAULTS
+	 * @param 
+	 */
 	
+	const vaultList: ListResult = await listAll(vaultRef);
+
+	let ALL_FIREBASE_VAULTS: FirebaseVault[] = [];
+
+
+	for (let i=0; i < vaultList.prefixes.length; i++){
+		const vaultName = `${vaultList.prefixes[i]}`.split('/').pop();
+		if (vaultName){
+			ALL_FIREBASE_VAULTS[i] = { title: vaultName, ref: `${vaultRef}`};
+		}
+	}
+	return ALL_FIREBASE_VAULTS;
+
 } 
 //contain a list of all vaults in the firebase bucket
-const ALL_FIREBASE_VAULTS = [
-	{
-		title: "How to Take Smart Notes",
-	},
-	{
-		title: "Thinking, Fast and Slow",
-	},
-	{
-		title: "Deep Work",
-	},
-];
 
 export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
+		
 
-	// Returns all available suggestions.
-	getSuggestions(query: string): FirebaseVault[] {
-		return ALL_FIREBASE_VAULTS.filter((vault) =>
+	async getSuggestions(query: string): Promise<FirebaseVault[]> {
+		const RETRIEVED_FIREBASE_VAULTS = await fetchFirebaseVaults();
+
+		if(RETRIEVED_FIREBASE_VAULTS.length <= 0){
+			new Notice('NO VAULTS PRESENT');
+		}
+		return RETRIEVED_FIREBASE_VAULTS.filter((vault) =>
 		vault.title.toLowerCase().includes(query.toLowerCase())
 		);
 	}
@@ -309,7 +320,20 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	// Perform action on the selected suggestion.
 	onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${vault.title}`);
-		//change some current vault value
+
+		
+		let adapter = this.app.vault.adapter;
+		if (adapter instanceof FileSystemAdapter) {
+			const oldPath = adapter.getBasePath();
+			const newPath = oldPath.split('/');
+			newPath.pop();
+			newPath.push(`${vault.title}`);
+
+			rename(oldPath, newPath.join('/'), () => {
+				console.log("Successfull Renamed Vault");
+			});
+		}
+		
 	}
 }
 
