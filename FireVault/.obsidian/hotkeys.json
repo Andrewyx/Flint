@@ -4,5 +4,11 @@
       "modifiers": [],
       "key": "F8"
     }
+  ],
+  "flint:import-cloud-vault": [
+    {
+      "modifiers": [],
+      "key": "F8"
+    }
   ]
 }

@@ -81,7 +81,8 @@ async function downloadToLocal(currentDirFileList: ListResult) {
 		console.log('attempting download');
 
 		let remoteFilePath = currentDirFileList.items[i].fullPath.split('/');
-		remoteFilePath = remoteFilePath.slice(2);
+		remoteFilePath = remoteFilePath.slice(3);
+		remoteFilePath.unshift(`${this.app.vault.getName()}`);
 		const localFilePath: string = remoteFilePath.join('/');
 
 		console.log(`Writting from File Path @: ${currentDirFileList.items[i]} 
@@ -321,7 +322,11 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${vault.title}`);
 
-		
+		//TODO: Rework this entire section so that:
+		/* 1) Local vault names do not matter
+		   2) Remote vault names can be changed with modals
+		   3) Display currently synced vault with status bar
+		*/
 		let adapter = this.app.vault.adapter;
 		if (adapter instanceof FileSystemAdapter) {
 			const oldPath = adapter.getBasePath();
@@ -330,7 +335,7 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 			newPath.push(`${vault.title}`);
 
 			rename(oldPath, newPath.join('/'), () => {
-				console.log("Successfull Renamed Vault");
+				console.log(`Successfull Renamed Vault to ${newPath.join('/')}`);
 			});
 		}
 		

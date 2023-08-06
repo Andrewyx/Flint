@@ -4,19 +4,15 @@
     "type": "split",
     "children": [
       {
-        "id": "d373b840d8989185",
+        "id": "4259dc05c994fa84",
         "type": "tabs",
         "children": [
           {
-            "id": "4e835e688f4575ef",
+            "id": "2d0e8691364edc6e",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -65,8 +61,7 @@
               "state": {}
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -86,7 +81,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +97,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,9 +118,7 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "cool folder/cool nested FOLDER/This note is going into the depths.md"
-              }
+              "state": {}
             }
           }
         ],
@@ -147,19 +138,20 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "d3a463fa6a0790b3",
+  "active": "2d0e8691364edc6e",
   "lastOpenFiles": [
     "2023-08-04.md",
-    "what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "MY CODE FILE.md",
-    "test file.md",
-    "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/this is unexpected",
     "what about this folder/and this file.md",
+    "what about this folder/HOW ABOUT THIS FILE THEN.md",
     "what about this folder",
+    "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "cool folder/cool nested FOLDER",
     "cool folder",
+    "test file.md",
+    "Manifesto of the Communist Party.md",
+    "MY CODE FILE.md",
     "and this file.md",
     "undefined",
     "and this file"
