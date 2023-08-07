@@ -6,8 +6,6 @@ import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable
 // Import the functions you need from the SDKs you need
 
 import { initializeApp } from "firebase/app";
-
-import { rename } from 'fs';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -31,6 +29,7 @@ const storageRef = ref(storage);
 const vaultRef: StorageReference = ref(storageRef, 'vaults');
 
 let currentVaultName: string = 'vaults'; 
+let remoteVaultName: string = '';
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -49,70 +48,79 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 
 
-async function uploadFile(files: TFile[], index: number) {
+async function uploadFile(files: TFile[], index: number): Promise<void> {
 
 	//Sequential calls for param information
-	const pathString: string = await `${currentVaultName}/${files[index].path}`;
-	const pathRef: StorageReference = await ref(vaultRef, pathString);
-	const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
-
-	//feed params into upload func from firebase
-	await uploadBytesResumable(pathRef, data).then((snapshot) => {
-		console.log(`file ${index} uploaded successfully`);
-	  });			
+	//Check if destination has been set
+	if (remoteVaultName !== ''){
+		const pathString: string = await `${remoteVaultName}/${files[index].path}`;
+		const pathRef: StorageReference = await ref(vaultRef, pathString);
+		const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
+	
+		//feed params into upload func from firebase
+		await uploadBytesResumable(pathRef, data).then((snapshot) => {
+			console.log(`file ${index} uploaded successfully`);
+		  });					
+	}
+	else{
+		new Notice("Choose a target vault destination!");
+	}
 
 }
 
-async function importVault(targetVault:string) {
+async function importVault(localVault:string, remoteVault: string): Promise<void> {
 	/**
-	 * @param targetVault is the target local vault where files will be written to
+	 * @param localVault is the target local vault where files will be written to
 	 */
-
-	const targetVaultRef: StorageReference = ref(vaultRef, `${targetVault}`);
-	const vaultFileList: ListResult = await listAll(targetVaultRef);
+	new Notice(`Remote Vault: ${remoteVault}`);
+	const remoteVaultRef: StorageReference = ref(vaultRef, `${remoteVault}`);
+	const remoteVaultFileList: ListResult = await listAll(remoteVaultRef);
 
 	//pass in all files and prefixes (folders) into download function.
-	downloadToLocal(vaultFileList);
+	downloadToLocal(localVault, remoteVaultFileList);
 }
 
-async function downloadToLocal(currentDirFileList: ListResult) {
+async function downloadToLocal(localVaultName: string, remoteDirFileList: ListResult): Promise<void> {
 
-	for (let i = 0; i < currentDirFileList.items.length; i++) {
-		console.log('attempting download');
+	for (let i = 0; i < remoteDirFileList.items.length; i++) {
 
-		let remoteFilePath = currentDirFileList.items[i].fullPath.split('/');
-		remoteFilePath = remoteFilePath.slice(3);
-		remoteFilePath.unshift(`${this.app.vault.getName()}`);
+		let remoteFilePath = remoteDirFileList.items[i].fullPath.split('/');
+		remoteFilePath = remoteFilePath.slice(2);
+
+
 		const localFilePath: string = remoteFilePath.join('/');
-
-		console.log(`Writting from File Path @: ${currentDirFileList.items[i]} 
-			to file path ${localFilePath}`);
-			
-		const file = await fetchFile( `${currentDirFileList.items[i]}` );
+		const file: ArrayBuffer = await fetchFile( `${remoteDirFileList.items[i]}` );
 
 		try {
+			console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
 			await this.app.vault.createBinary(localFilePath, file);
-			await console.log('success!');
+
 		} catch (error) {
+			console.log('File write failed, creating folder');
 			remoteFilePath.pop();
+			//removes the file from the path
 			const localFolderPath: string = remoteFilePath.join('/');
+			console.log(`Creating Folder at ${localFolderPath}`);
 			await this.app.vault.createFolder(localFolderPath);
 			await this.app.vault.createBinary(localFilePath, file);
-			await console.log('success!');
+
+		} finally {
+			console.log('success!');
 		}
+
 		
 	}
-	if(currentDirFileList.prefixes.length > 0){
+	if(remoteDirFileList.prefixes.length > 0){
 
-		for (let x = 0; x < currentDirFileList.prefixes.length; x++){
-			const localFolders = await listAll(currentDirFileList.prefixes[x]);
-			downloadToLocal(localFolders);
+		for (let x = 0; x < remoteDirFileList.prefixes.length; x++){
+			const localFolders = await listAll(remoteDirFileList.prefixes[x]);
+			downloadToLocal(localVaultName, localFolders);
 			//nasty recursion
 		}
 	}
 }
 
-async function fetchFile(filePathString: string){
+async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
 
 	const filePathRef: StorageReference = ref(storage, filePathString);
 	const fileURL: string = await getDownloadURL(filePathRef);
@@ -123,7 +131,6 @@ async function fetchFile(filePathString: string){
 		xhr.responseType = 'arraybuffer';
 		xhr.onload = (event) => {
 			const returnedFile: ArrayBuffer = xhr.response;
-			console.log('gottem on the remote');
 			resolve(returnedFile);
 		}; 
 	
@@ -165,19 +172,27 @@ export default class MyPlugin extends Plugin {
 		uploadRibbon.addClass('flint-upload-ribbon-class');
 
 		const downloadRibbon =  this.addRibbonIcon('download', 'Download Files', (evt: MouseEvent) => {
-			new Notice('Downloadin!');
-			
-			importVault(currentVaultName);
-			//param does nothing now, TODO: MAKE ADJUSTABLE
-		
-			new Notice('Downloaded~');
+			//Check if target vault has been selected
+			if (remoteVaultName !== ''){
+				new Notice('Downloadin!');
+				importVault(currentVaultName, remoteVaultName);
+			}
+			else{
+				new Notice("Please select target cloud vault!");
+			}
+
 		});
 		downloadRibbon.addClass('flint-download-ribbon-class');
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Flint Active');
-
+		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
+		if (remoteVaultName !== ''){
+			statusBarItemEl.setText(`Flint Remote Set to ${remoteVaultName}`);
+		}
+		else{
+			statusBarItemEl.setText(`Flint Remote Not Set`);
+		}
+		
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: 'open-sample-modal-simple',
@@ -220,8 +235,9 @@ export default class MyPlugin extends Plugin {
 			id:'import-cloud-vault',
 			name:'Import Vault from Cloud',
 			callback: () => {
-				const testModal = new CloudVaultSelectModal(this.app);
-				testModal.open();	
+				const selectionModal = new CloudVaultSelectModal(this.app);
+				selectionModal.open();
+				statusBarItemEl.setText(`Flint Remote Set to ${remoteVaultName}`);	
 			}
 
 		});
@@ -327,18 +343,20 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 		   2) Remote vault names can be changed with modals
 		   3) Display currently synced vault with status bar
 		*/
-		let adapter = this.app.vault.adapter;
-		if (adapter instanceof FileSystemAdapter) {
-			const oldPath = adapter.getBasePath();
-			const newPath = oldPath.split('/');
-			newPath.pop();
-			newPath.push(`${vault.title}`);
+		// let adapter = this.app.vault.adapter;
+		// if (adapter instanceof FileSystemAdapter) {
+		// 	const oldPath = adapter.getBasePath();
+		// 	const newPath = oldPath.split('/');
+		// 	newPath.pop();
+		// 	newPath.push(`${vault.title}`);
 
-			rename(oldPath, newPath.join('/'), () => {
-				console.log(`Successfull Renamed Vault to ${newPath.join('/')}`);
-			});
-		}
-		
+		// 	rename(oldPath, newPath.join('/'), () => {
+		// 		console.log(`Successfull Renamed Vault to ${newPath.join('/')}`);
+		// 	});
+		// }
+
+		remoteVaultName = vault.title;
+				
 	}
 }
 

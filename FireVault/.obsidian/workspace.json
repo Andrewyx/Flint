@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "4259dc05c994fa84",
+        "id": "fa40888ee383db07",
         "type": "tabs",
         "children": [
           {
-            "id": "2d0e8691364edc6e",
+            "id": "c217d20cc2b539e3",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -65,7 +65,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200.5
   },
   "right": {
     "id": "16fdba93b187b403",
@@ -126,10 +126,12 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
+      "flint:Upload Files": false,
+      "flint:Download Files": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -138,22 +140,35 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "2d0e8691364edc6e",
+  "active": "d429040738eab54c",
   "lastOpenFiles": [
-    "2023-08-04.md",
     "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/this is unexpected",
     "what about this folder/and this file.md",
-    "what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "what about this folder",
     "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "cool folder/cool nested FOLDER",
     "cool folder",
+    "what about this folder/HOW ABOUT THIS FILE THEN.md",
+    "what about this folder",
     "test file.md",
     "Manifesto of the Communist Party.md",
     "MY CODE FILE.md",
-    "and this file.md",
-    "undefined",
-    "and this file"
+    "2023-08-04.md",
+    "FireVault/what about this folder/this is unexpected/AH HA EXPECT THIS.md",
+    "FireVault/what about this folder/this is unexpected",
+    "FireVault/what about this folder/and this file.md",
+    "FireVault/cool folder/cool nested FOLDER/This note is going into the depths.md",
+    "FireVault/cool folder/cool nested FOLDER",
+    "FireVault/cool folder",
+    "FireVault/what about this folder/HOW ABOUT THIS FILE THEN.md",
+    "FireVault/what about this folder",
+    "FireVault/test file.md",
+    "FireVault/Manifesto of the Communist Party.md",
+    "FireVault/MY CODE FILE.md",
+    "FireVault/2023-08-04.md",
+    "FireVault",
+    "Untitled.md",
+    "WaterVault",
+    "and this file.md"
   ]
 }
