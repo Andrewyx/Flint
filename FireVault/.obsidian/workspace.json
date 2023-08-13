@@ -4,7 +4,7 @@
     "type": "split",
     "children": [
       {
-        "id": "fa40888ee383db07",
+        "id": "e3f97831ccd64f1e",
         "type": "tabs",
         "children": [
           {
@@ -121,8 +121,7 @@
               "state": {}
             }
           }
-        ],
-        "currentTab": 3
+        ]
       }
     ],
     "direction": "horizontal",
@@ -142,18 +141,20 @@
   },
   "active": "d429040738eab54c",
   "lastOpenFiles": [
-    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
-    "what about this folder/this is unexpected",
     "what about this folder/and this file.md",
-    "cool folder/cool nested FOLDER/This note is going into the depths.md",
-    "cool folder/cool nested FOLDER",
-    "cool folder",
+    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/HOW ABOUT THIS FILE THEN.md",
+    "cool folder/cool nested FOLDER/This note is going into the depths.md",
+    "what about this folder/this is unexpected",
     "what about this folder",
-    "test file.md",
+    "cool folder/cool nested FOLDER",
     "Manifesto of the Communist Party.md",
-    "MY CODE FILE.md",
     "2023-08-04.md",
+    "cool folder",
+    "test file.md",
+    "MY CODE FILE.md",
+    "other cool folder/So how about this set of notes.md",
+    "other cool folder",
     "FireVault/what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "FireVault/what about this folder/this is unexpected",
     "FireVault/what about this folder/and this file.md",
@@ -167,8 +168,6 @@
     "FireVault/MY CODE FILE.md",
     "FireVault/2023-08-04.md",
     "FireVault",
-    "Untitled.md",
-    "WaterVault",
     "and this file.md"
   ]
 }

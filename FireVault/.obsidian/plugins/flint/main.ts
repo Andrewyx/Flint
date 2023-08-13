@@ -1,11 +1,11 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal, FileSystemAdapter, normalizePath} from 'obsidian';
-
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal, TFolder, Vault } from 'obsidian';
 
 import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, ListResult, listAll } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
 import { initializeApp } from "firebase/app";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -31,22 +31,13 @@ const vaultRef: StorageReference = ref(storageRef, 'vaults');
 let currentVaultName: string = 'vaults'; 
 let remoteVaultName: string = '';
 
-interface MyPluginSettings {
-	mySetting: string;
+interface FlintPluginSettings {
+	remoteConnectedVault: string;
 }
 
-interface Book {
-	title: string;
-	author: string;
-  }
-
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: FlintPluginSettings = {
+	remoteConnectedVault: 'default'
 }
-
-
-
 
 async function uploadFile(files: TFile[], index: number): Promise<void> {
 
@@ -82,6 +73,46 @@ async function importVault(localVault:string, remoteVault: string): Promise<void
 
 async function downloadToLocal(localVaultName: string, remoteDirFileList: ListResult): Promise<void> {
 
+	const vault: Vault = this.app.vault;
+
+	if(remoteDirFileList.prefixes.length > 0){
+
+		for (let x = 0; x < remoteDirFileList.prefixes.length; x++){
+			let remoteFolderPath = remoteDirFileList.prefixes[x].fullPath.split('/');
+			remoteFolderPath = remoteFolderPath.slice(2);
+
+			const localFolderPath: string = remoteFolderPath.join('/');
+
+		if(vault.getAbstractFileByPath(localFolderPath)){
+			//Item exists already
+			const fileOrFolder = vault.getAbstractFileByPath(localFolderPath);
+
+			if(fileOrFolder instanceof TFolder){
+				console.log(`${fileOrFolder.name} Exists`);
+				//rename folder
+				//modify the folder
+				const localfolder = fileOrFolder;
+				vault.rename(localfolder, localFolderPath);
+				//this...does nothing...bozo
+				}
+		}
+		else{
+			try{
+				await vault.createFolder(localFolderPath);
+			}
+			catch(error){
+				console.log(error);
+			}
+		}		
+
+			const localFolders = await listAll(remoteDirFileList.prefixes[x]);
+			console.log('Looping');
+
+			downloadToLocal(localVaultName, localFolders);
+			//nasty recursion
+		}
+	}	
+
 	for (let i = 0; i < remoteDirFileList.items.length; i++) {
 
 		let remoteFilePath = remoteDirFileList.items[i].fullPath.split('/');
@@ -91,33 +122,54 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 		const localFilePath: string = remoteFilePath.join('/');
 		const file: ArrayBuffer = await fetchFile( `${remoteDirFileList.items[i]}` );
 
-		try {
-			console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
-			await this.app.vault.createBinary(localFilePath, file);
 
-		} catch (error) {
-			console.log('File write failed, creating folder');
-			remoteFilePath.pop();
-			//removes the file from the path
-			const localFolderPath: string = remoteFilePath.join('/');
-			console.log(`Creating Folder at ${localFolderPath}`);
-			await this.app.vault.createFolder(localFolderPath);
-			await this.app.vault.createBinary(localFilePath, file);
+		if(vault.getAbstractFileByPath(localFilePath)){
+			//Item exists already
+			const fileOrFolder = vault.getAbstractFileByPath(localFilePath);
+			//nest modification functions
+			
 
-		} finally {
-			console.log('success!');
+			if (fileOrFolder instanceof TFile){
+				console.log(`${fileOrFolder.name} Exists`);
+				const localfile = fileOrFolder;
+				vault.modifyBinary(localfile, file);
+
+
+				// await vault.process(localfile, (data) => {
+				// 	//use API https://github.com/google/diff-match-patch/wiki/API to find diffs and eventually show the user before modifying the text completely
+					
+				// 	const newData = file;
+
+				// 	return data.replace('','');
+
+				// })
+				//rename file
+				
+			}
 		}
+		else{
+			//file doesnt exist yet. 
+			try {
+				console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
+				await vault.createBinary(localFilePath, file);
+	
+			} catch (error) {
+				// console.log('File write failed, creating folder');
+				// remoteFilePath.pop();
+				// //removes the file from the path
+				// const localFolderPath: string = remoteFilePath.join('/');
+				// console.log(`Creating Folder at ${localFolderPath}`);
+				// //await this.app.vault.createFolder(localFolderPath);
+				// await this.app.vault.createBinary(localFilePath, file);
+				console.log(error);
+			}
+		}
+
+
 
 		
 	}
-	if(remoteDirFileList.prefixes.length > 0){
 
-		for (let x = 0; x < remoteDirFileList.prefixes.length; x++){
-			const localFolders = await listAll(remoteDirFileList.prefixes[x]);
-			downloadToLocal(localVaultName, localFolders);
-			//nasty recursion
-		}
-	}
 }
 
 async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
@@ -144,8 +196,8 @@ async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
 }
 
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class FlintPlugin extends Plugin {
+	settings: FlintPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -187,18 +239,30 @@ export default class MyPlugin extends Plugin {
 		const statusBarItemEl = this.addStatusBarItem();
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		if (remoteVaultName !== ''){
-			statusBarItemEl.setText(`Flint Remote Set to ${remoteVaultName}`);
+			statusBarItemEl.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
 		}
 		else{
 			statusBarItemEl.setText(`Flint Remote Not Set`);
 		}
+		this.addCommand({
+			id: 'refresh-status-bar',
+			name: 'Refresh Status Bar',
+			callback() {
+				if (remoteVaultName !== ''){
+					statusBarItemEl.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
+				}
+				else{
+					statusBarItemEl.setText(`Flint Remote Not Set`);
+				}
+			}
+		});
 		
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: 'open-sample-modal-simple',
 			name: 'Open sample modal (simple)',
 			callback: () => {
-				new SampleModal(this.app).open();
+				//new SampleModal(this.app).open();
 			}
 		});
 		// This adds an editor command that can perform some operation on the current editor instance
@@ -221,7 +285,7 @@ export default class MyPlugin extends Plugin {
 					// If checking is true, we're simply "checking" if the command can be run.
 					// If checking is false, then we want to actually perform the operation.
 					if (!checking) {
-						new SampleModal(this.app).open();
+						//new SampleModal(this.app).open();
 					}
 
 					// This command will only show up in Command Palette when the check function returns true
@@ -237,13 +301,12 @@ export default class MyPlugin extends Plugin {
 			callback: () => {
 				const selectionModal = new CloudVaultSelectModal(this.app);
 				selectionModal.open();
-				statusBarItemEl.setText(`Flint Remote Set to ${remoteVaultName}`);	
 			}
 
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new FlintSettingsTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -260,6 +323,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 	async loadSettings() {
+
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
@@ -270,21 +334,7 @@ export default class MyPlugin extends Plugin {
 
 //Modals and hotkey tabs!
 //TODO: 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
 
 //object structure will 
 interface FirebaseVault {
@@ -335,7 +385,7 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	}
 
 	// Perform action on the selected suggestion.
-	onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
+	async onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${vault.title}`);
 
 		//TODO: Rework this entire section so that:
@@ -343,35 +393,16 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 		   2) Remote vault names can be changed with modals
 		   3) Display currently synced vault with status bar
 		*/
-		// let adapter = this.app.vault.adapter;
-		// if (adapter instanceof FileSystemAdapter) {
-		// 	const oldPath = adapter.getBasePath();
-		// 	const newPath = oldPath.split('/');
-		// 	newPath.pop();
-		// 	newPath.push(`${vault.title}`);
-
-		// 	rename(oldPath, newPath.join('/'), () => {
-		// 		console.log(`Successfull Renamed Vault to ${newPath.join('/')}`);
-		// 	});
-		// }
-
 		remoteVaultName = vault.title;
-				
+							
 	}
 }
 
 
-//TODO: User input to select which vaults are to be uploaded under this section
+class FlintSettingsTab extends PluginSettingTab {
+	plugin: FlintPlugin;
 
-/* 
-Nah nah, give a list of all available firebase vaults with a modal and have the user select the one they would like to import from
-Then, rename the vault name to the selected cloud vault and pull
-*/
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: FlintPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -380,16 +411,22 @@ class SampleSettingTab extends PluginSettingTab {
 		const {containerEl} = this;
 
 		containerEl.empty();
-
+		//TODO: Change this entire section to a dropdown Options style tab with all available vaults on remote
+		//Just make the darn thing automatically load the current remoteVaultName (Or be undefined) and change the removeVaultName to whatever is selected
+		//incomplete
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Current Connected Remote Vault')
+			.setDesc('Active Firebase Vault')
+
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+				.setPlaceholder('Enter the vault you would like to sync to')
+				.setValue(this.plugin.settings.remoteConnectedVault)
+				.onChange(async (vaultName) => {
+					this.plugin.settings.remoteConnectedVault = vaultName;
+					remoteVaultName = vaultName;
 					await this.plugin.saveSettings();
 				}));
+			
+		
 	}
 }
