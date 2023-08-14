@@ -191,10 +191,12 @@ async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
 
 export default class FlintPlugin extends Plugin {
 	settings: FlintPluginSettings;
+	statusBar: HTMLElement;
 
 	async onload() {
 		await this.loadSettings();
 		currentVaultName = await this.app.vault.getName();
+		remoteVaultName = this.settings.remoteConnectedVault;
 		
 		// This creates an icon in the left ribbon.
 		const uploadRibbon = this.addRibbonIcon('upload', 'Upload Files', (evt: MouseEvent) => {
@@ -211,7 +213,6 @@ export default class FlintPlugin extends Plugin {
 				console.log(`Error: ${error}`);
 			  }
 			}			
-			new Notice('Success!');
 		});
 		// Perform additional things with the ribbon
 		uploadRibbon.addClass('flint-upload-ribbon-class');
@@ -229,13 +230,13 @@ export default class FlintPlugin extends Plugin {
 		});
 		downloadRibbon.addClass('flint-download-ribbon-class');
 
-		const statusBarItemEl = this.addStatusBarItem();
+		this.statusBar = this.addStatusBarItem();
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		if (this.settings.remoteConnectedVault !== 'default'){
-			statusBarItemEl.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
+			this.statusBar.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
 			}
 		else{
-			statusBarItemEl.setText(`Flint Remote Not Set`);
+			this.statusBar.setText(`Flint Remote Not Set`);
 		}
 
 		
@@ -273,7 +274,7 @@ export default class FlintPlugin extends Plugin {
 			id:'import-cloud-vault',
 			name:'Import Vault from Cloud',
 			callback: () => {
-				const selectionModal = new CloudVaultSelectModal(this.app, statusBarItemEl, this, this.settings);
+				const selectionModal = new CloudVaultSelectModal(this.app, this.statusBar, this, this.settings);
 				selectionModal.open();							
 			}
 
@@ -290,6 +291,13 @@ export default class FlintPlugin extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+	}
+
+	async setRemoteDesintation(remoteName:string){
+		this.settings.remoteConnectedVault = remoteName;
+		this.statusBar.setText(`Flint Remote Set to ${remoteName}`);
+		new Notice(`Syncing to ${remoteName}`);
+		await this.saveSettings()
 	}
 
 	onunload() {
@@ -370,17 +378,10 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	async onChooseSuggestion(vault: FirebaseVault, evt: MouseEvent | KeyboardEvent) {
 		new Notice(`Selected ${vault.title}`);
 
-		//TODO: Rework this entire section so that:
-		/* 1) Local vault names do not matter
-		   2) Remote vault names can be changed with modals
-		   3) Display currently synced vault with status bar
-		*/
 
 		remoteVaultName = vault.title;
-		this.HTMLStatusbar.setText(`Flint Remote Set to ${vault.title}`);
-		this.pluginSettings.remoteConnectedVault = vault.title;
-		await this.plugin.saveSettings();
 		
+		this.plugin.setRemoteDesintation(vault.title);
 		//changes the displayed current connected vault
 				
 	}
@@ -394,26 +395,37 @@ class FlintSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	async #fetchVaultOptions() {
+		const vaultList: ListResult = await listAll(vaultRef);
+
+		let ALL_FIREBASE_VAULTS: Record<string, string> = {};
+	
+		for (let i=0; i < vaultList.prefixes.length; i++){
+			const vaultName = `${vaultList.prefixes[i]}`.split('/').pop();
+			if (vaultName){
+				ALL_FIREBASE_VAULTS[vaultName] = vaultName;
+			}
+		}
+		return ALL_FIREBASE_VAULTS;		
+	}
+
+	
+
+	async display(): Promise<void> {
 		const {containerEl} = this;
+		const allVaultOptions = await this.#fetchVaultOptions();
 
 		containerEl.empty();
-		//TODO: Change this entire section to a dropdown Options style tab with all available vaults on remote
-		//Just make the darn thing automatically load the current remoteVaultName (Or be undefined) and change the removeVaultName to whatever is selected
-		//incomplete
+				
 		new Setting(containerEl)
 			.setName('Current Connected Remote Vault')
 			.setDesc('Active Firebase Vault')
 
-			.addText(text => text
-				.setPlaceholder('Enter the vault you would like to sync to')
-				.setValue(this.plugin.settings.remoteConnectedVault)
-				.onChange(async (vaultName) => {
-					this.plugin.settings.remoteConnectedVault = vaultName;
-					remoteVaultName = vaultName;
-					await this.plugin.saveSettings();
-				}));
-			
+			.addDropdown(options => options
+				.addOptions(allVaultOptions)
+				.onChange(async (name:string) => {
+					this.plugin.setRemoteDesintation(name);			
+				}));	
 		
 	}
 }
