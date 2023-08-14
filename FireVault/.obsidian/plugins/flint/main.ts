@@ -143,7 +143,6 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 				// 	return data.replace('','');
 
 				// })
-				//rename file
 				
 			}
 		}
@@ -154,13 +153,7 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 				await vault.createBinary(localFilePath, file);
 	
 			} catch (error) {
-				// console.log('File write failed, creating folder');
-				// remoteFilePath.pop();
-				// //removes the file from the path
-				// const localFolderPath: string = remoteFilePath.join('/');
-				// console.log(`Creating Folder at ${localFolderPath}`);
-				// //await this.app.vault.createFolder(localFolderPath);
-				// await this.app.vault.createBinary(localFilePath, file);
+
 				console.log(error);
 			}
 		}
@@ -238,33 +231,14 @@ export default class FlintPlugin extends Plugin {
 
 		const statusBarItemEl = this.addStatusBarItem();
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		if (remoteVaultName !== ''){
+		if (this.settings.remoteConnectedVault !== 'default'){
 			statusBarItemEl.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
-		}
+			}
 		else{
 			statusBarItemEl.setText(`Flint Remote Not Set`);
 		}
-		this.addCommand({
-			id: 'refresh-status-bar',
-			name: 'Refresh Status Bar',
-			callback() {
-				if (remoteVaultName !== ''){
-					statusBarItemEl.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
-				}
-				else{
-					statusBarItemEl.setText(`Flint Remote Not Set`);
-				}
-			}
-		});
+
 		
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				//new SampleModal(this.app).open();
-			}
-		});
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
 			id: 'sample-editor-command',
@@ -299,12 +273,12 @@ export default class FlintPlugin extends Plugin {
 			id:'import-cloud-vault',
 			name:'Import Vault from Cloud',
 			callback: () => {
-				const selectionModal = new CloudVaultSelectModal(this.app);
-				selectionModal.open();
+				const selectionModal = new CloudVaultSelectModal(this.app, statusBarItemEl, this, this.settings);
+				selectionModal.open();							
 			}
 
 		});
-
+		
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new FlintSettingsTab(this.app, this));
 
@@ -332,11 +306,8 @@ export default class FlintPlugin extends Plugin {
 	}
 }
 
-//Modals and hotkey tabs!
-//TODO: 
 
-
-//object structure will 
+ 
 interface FirebaseVault {
 	title: string;
 	ref?: string;
@@ -344,8 +315,9 @@ interface FirebaseVault {
   
 
 async function fetchFirebaseVaults(): Promise<FirebaseVault[]> {
-	/** Generate/Update list of ALL_FIREBASE_VAULTS
-	 * @param 
+	/** Generate/Update list of ALL_FIREBASE_VAULTS 
+	 * @public  
+	 * 
 	 */
 	
 	const vaultList: ListResult = await listAll(vaultRef);
@@ -365,8 +337,18 @@ async function fetchFirebaseVaults(): Promise<FirebaseVault[]> {
 //contain a list of all vaults in the firebase bucket
 
 export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
-		
+	HTMLStatusbar: HTMLElement;
+	pluginSettings: FlintPluginSettings;
+	plugin: FlintPlugin;
 
+	constructor(app: App, HTMLbar: HTMLElement, plugin: FlintPlugin,settings: FlintPluginSettings){
+		super(app);
+		this.app = app;
+		this.HTMLStatusbar = HTMLbar;
+		this.pluginSettings = settings;
+		this.plugin = plugin;
+		
+	}
 	async getSuggestions(query: string): Promise<FirebaseVault[]> {
 		const RETRIEVED_FIREBASE_VAULTS = await fetchFirebaseVaults();
 
@@ -393,11 +375,16 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 		   2) Remote vault names can be changed with modals
 		   3) Display currently synced vault with status bar
 		*/
+
 		remoteVaultName = vault.title;
-							
+		this.HTMLStatusbar.setText(`Flint Remote Set to ${vault.title}`);
+		this.pluginSettings.remoteConnectedVault = vault.title;
+		await this.plugin.saveSettings();
+		
+		//changes the displayed current connected vault
+				
 	}
 }
-
 
 class FlintSettingsTab extends PluginSettingTab {
 	plugin: FlintPlugin;
