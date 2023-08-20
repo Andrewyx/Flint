@@ -19,8 +19,33 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "fb9b3a8841241261",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "EMPTY FILEs.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "8ce40449b134367a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "EMPTY FILEs.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -156,12 +181,17 @@
   },
   "active": "d429040738eab54c",
   "lastOpenFiles": [
+    "2023-08-04.md",
+    "And this new one too.md",
+    "EMPTY FILEs.md",
+    "Manifesto of the Communist Party.md",
+    "Untitled/this hidden one too.md",
     "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
+    "Untitled",
+    "OTHER COOL FILES",
     "and this file.md",
     "coolest folder/cool nested FOLDER/This note is going into the depths.md",
-    "Untitled",
     "test file.md",
-    "2023-08-04.md",
     "coolest folder/cool nested FOLDER",
     "coolest folder",
     "what about this folder/and this file.md",
@@ -170,7 +200,6 @@
     "what about this folder/this is unexpected",
     "what about this folder",
     "cool folder/cool nested FOLDER",
-    "Manifesto of the Communist Party.md",
     "cool folder",
     "MY CODE FILE.md",
     "other cool folder/So how about this set of notes.md",
@@ -179,12 +208,10 @@
     "FireVault/what about this folder/this is unexpected",
     "FireVault/what about this folder/and this file.md",
     "FireVault/cool folder/cool nested FOLDER/This note is going into the depths.md",
-    "FireVault/cool folder/cool nested FOLDER",
     "FireVault/what about this folder/HOW ABOUT THIS FILE THEN.md",
     "FireVault/test file.md",
     "FireVault/Manifesto of the Communist Party.md",
     "FireVault/MY CODE FILE.md",
-    "FireVault/2023-08-04.md",
-    "and this file.md"
+    "FireVault/2023-08-04.md"
   ]
 }

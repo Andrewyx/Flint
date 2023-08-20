@@ -1,6 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, SuggestModal, TFolder, Vault } from 'obsidian';
 
-import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, ListResult, listAll } from 'firebase/storage';
+import { StorageReference, getDownloadURL, getStorage, ref, uploadBytesResumable, ListResult, listAll, deleteObject } from 'firebase/storage';
 // Remember to rename these classes and interfaces!
 // Import the functions you need from the SDKs you need
 
@@ -39,15 +39,19 @@ const DEFAULT_SETTINGS: FlintPluginSettings = {
 	remoteConnectedVault: 'default'
 }
 
-interface FlintRemoteFile{
-	name: string,
-	path: string
-}
-interface FlintRemoteFileMap {
-	[name: string]: FlintRemoteFile;
+
+export class FlintDataTransfer {
+
 }
 
-const map = new Map()
+// interface FlintRemoteFile{
+// 	name: string,
+// 	path: string
+// }
+// interface FlintRemoteFileMap {
+// 	[name: string]: FlintRemoteFile;
+// }
+
 
 // async function getAllRemoteFiles(fileList: ListResult, dirFileNames: FlintRemoteFileMap): Promise<FlintRemoteFile[]> {
 
@@ -72,7 +76,51 @@ const map = new Map()
 
 //#region Upload/Download Files
 
+async function deleteFile(remoteVaultFileList: ListResult) {
+	//deletes all files in this dir and in children dirs
+
+	for (let i = 0; i < remoteVaultFileList.items.length; i++){
+		const deleteRef: StorageReference = ref(storage, remoteVaultFileList.items[i].fullPath);
+		deleteObject(deleteRef);
+	}
+
+	if(remoteVaultFileList.prefixes.length > 0) {
+		for(let x = 0; x < remoteVaultFileList.prefixes.length; x++){
+			const localFolders = await listAll(remoteVaultFileList.prefixes[x]);
+			deleteFile(localFolders);
+		}
+	}	
+}
+
+async function clearRemoteVault(settings: FlintPluginSettings ) {
+	const remoteVaultName: string = settings.remoteConnectedVault;
+
+	if (remoteVaultName){
+		const remoteVaultRef: StorageReference = ref(vaultRef, `${remoteVaultName}`);
+		const remoteVaultFileList: ListResult = await listAll(remoteVaultRef);
+		await deleteFile(remoteVaultFileList)
+	}
+}
+
+async function forceUploadFiles(vault: Vault, settings: FlintPluginSettings) {
+	clearRemoteVault(settings).then(
+		(value) => {
+			const files = vault.getMarkdownFiles();
+			for (let i = 0; i < files.length; i++) {
+				try {
+					uploadFile(files, i);
+				} catch (error) {
+					console.log(`Error: ${error}`);
+				}
+			}	
+		}
+	);
+			
+
+}
+
 async function uploadFile(files: TFile[], index: number): Promise<void> {
+	
 
 	//Sequential calls for param information
 	//Check if destination has been set
@@ -82,15 +130,16 @@ async function uploadFile(files: TFile[], index: number): Promise<void> {
 		const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
 
 		//feed params into upload func from firebase
-		const remoteVaultRef: StorageReference = ref(vaultRef, `${remoteVaultName}`);
+		//const remoteVaultRef: StorageReference = ref(vaultRef, `${remoteVaultName}`);
 		//const remoteVaultFileList: ListResult = await listAll(remoteVaultRef);
 		//const allRemoteFilesNames = await getAllRemoteFiles(remoteVaultFileList, []);
-		const allLocalFiles: TFile[] = await this.app.vault.getMarkdownFiles();
-		let allLocalFileNames:string[] = [];
+		// const allLocalFiles: TFile[] = await this.app.vault.getMarkdownFiles();
+		// let allLocalFileNames:string[] = [];
 
-		for(let y = 0; y < allLocalFiles.length; y++ ){
-			allLocalFileNames.push(allLocalFiles[y].name);
-		}
+
+		// for(let y = 0; y < allLocalFiles.length; y++ ){
+		// 	allLocalFileNames.push(allLocalFiles[y].name);
+		// }
 		
 
 		//just give up and trash all paths bruh
@@ -98,8 +147,6 @@ async function uploadFile(files: TFile[], index: number): Promise<void> {
 		//const difference = allRemoteFilesNames.filter((element) => !allLocalFileNames.includes(element));
 		//this is terribly slow and I think exponential time comp, change to a hashmap at some point please
 		//replace ALL of this with JS Objects instead 
-
-
 
 		await uploadBytesResumable(pathRef, data).then((snapshot) => {
 			console.log(`file ${index} uploaded successfully`);
@@ -248,17 +295,9 @@ export default class FlintPlugin extends Plugin {
 		const uploadRibbon = this.addRibbonIcon('upload', 'Upload Files', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('Attempting Upload');
+			
+			forceUploadFiles(this.app.vault, this.settings);
 
-			const files = this.app.vault.getMarkdownFiles();
-
-			for (let i = 0; i < files.length; i++) {
-
-				try {
-					uploadFile(files, i);
-				} catch (error) {
-					console.log(`Error: ${error}`);
-				}
-			}
 		});
 		// Perform additional things with the ribbon
 		uploadRibbon.addClass('flint-upload-ribbon-class');
@@ -408,7 +447,7 @@ async function fetchFirebaseVaults(): Promise<FirebaseVault[]> {
 }
 //contain a list of all vaults in the firebase bucket
 
-export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
+class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	HTMLStatusbar: HTMLElement;
 	pluginSettings: FlintPluginSettings;
 	plugin: FlintPlugin;
