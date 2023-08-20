@@ -13,8 +13,9 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2023-08-04.md",
+                "file": "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
                 "mode": "source",
+                "backlinks": false,
                 "source": false
               }
             }
@@ -85,7 +86,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-08-04.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-08-04.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -124,19 +123,27 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "2023-08-04.md"
-              }
+              "state": {}
+            }
+          },
+          {
+            "id": "30c6693fdff343f1",
+            "type": "leaf",
+            "state": {
+              "type": "example-view",
+              "state": {}
             }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 379.5
   },
   "left-ribbon": {
     "hiddenItems": {
+      "flint:Activate view": false,
       "flint:Upload Files": false,
       "flint:Download Files": false,
       "switcher:Open quick switcher": false,
@@ -147,22 +154,24 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "c217d20cc2b539e3",
+  "active": "d429040738eab54c",
   "lastOpenFiles": [
+    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
+    "and this file.md",
     "coolest folder/cool nested FOLDER/This note is going into the depths.md",
+    "Untitled",
+    "test file.md",
+    "2023-08-04.md",
     "coolest folder/cool nested FOLDER",
     "coolest folder",
     "what about this folder/and this file.md",
-    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "what about this folder/HOW ABOUT THIS FILE THEN.md",
     "cool folder/cool nested FOLDER/This note is going into the depths.md",
     "what about this folder/this is unexpected",
     "what about this folder",
     "cool folder/cool nested FOLDER",
     "Manifesto of the Communist Party.md",
-    "2023-08-04.md",
     "cool folder",
-    "test file.md",
     "MY CODE FILE.md",
     "other cool folder/So how about this set of notes.md",
     "other cool folder",
@@ -171,7 +180,6 @@
     "FireVault/what about this folder/and this file.md",
     "FireVault/cool folder/cool nested FOLDER/This note is going into the depths.md",
     "FireVault/cool folder/cool nested FOLDER",
-    "FireVault/cool folder",
     "FireVault/what about this folder/HOW ABOUT THIS FILE THEN.md",
     "FireVault/test file.md",
     "FireVault/Manifesto of the Communist Party.md",

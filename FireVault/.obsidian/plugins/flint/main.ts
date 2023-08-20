@@ -12,12 +12,12 @@ import { initializeApp } from "firebase/app";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDdAYtOpSAG1MQWqY6zHWbBSvqOCBqkEDs",
-  authDomain: "flint-4c10d.firebaseapp.com",
-  projectId: "flint-4c10d",
-  storageBucket: "flint-4c10d.appspot.com",
-  messagingSenderId: "847454040500",
-  appId: "1:847454040500:web:81298369de91f143d1c2e1"
+	apiKey: "AIzaSyDdAYtOpSAG1MQWqY6zHWbBSvqOCBqkEDs",
+	authDomain: "flint-4c10d.firebaseapp.com",
+	projectId: "flint-4c10d",
+	storageBucket: "flint-4c10d.appspot.com",
+	messagingSenderId: "847454040500",
+	appId: "1:847454040500:web:81298369de91f143d1c2e1"
 };
 
 // Initialize Firebase
@@ -28,7 +28,7 @@ const storageRef = ref(storage);
 //Use this reference
 const vaultRef: StorageReference = ref(storageRef, 'vaults');
 
-let currentVaultName: string = 'vaults'; 
+let currentVaultName: string = 'vaults';
 let remoteVaultName: string = '';
 
 interface FlintPluginSettings {
@@ -39,27 +39,79 @@ const DEFAULT_SETTINGS: FlintPluginSettings = {
 	remoteConnectedVault: 'default'
 }
 
+interface FlintRemoteFile{
+	name: string,
+	path: string
+}
+interface FlintRemoteFileMap {
+	[name: string]: FlintRemoteFile;
+}
+
+const map = new Map()
+
+// async function getAllRemoteFiles(fileList: ListResult, dirFileNames: FlintRemoteFileMap): Promise<FlintRemoteFile[]> {
+
+// 	for (let i = 0; i < fileList.items.length; i++) {
+// 		const name = fileList.items[i].name;
+// 		const path = fileList.items[i].fullPath;
+// 		const fileObj :FlintRemoteFile = {name, path}; 
+// 		dirFileNames[fileList.items[i].fullPath] = fileObj;
+
+// 	}	
+// 	if (fileList.prefixes.length > 0){
+// 		for (let x = 0; x < fileList.prefixes.length; x++){
+// 			const localFolders = await listAll(fileList.prefixes[x]);
+// 			const fileInFolder = await getAllRemoteFiles(localFolders, dirFileNames);
+// 			dirFileNames = dirFileNames.concat(fileInFolder);
+// 		}
+// 	}
+
+// 	return dirFileNames;
+// 	//return map of all file objs
+// }
+
+//#region Upload/Download Files
+
 async function uploadFile(files: TFile[], index: number): Promise<void> {
 
 	//Sequential calls for param information
 	//Check if destination has been set
-	if (remoteVaultName !== ''){
+	if (remoteVaultName !== '') {
 		const pathString: string = await `${remoteVaultName}/${files[index].path}`;
 		const pathRef: StorageReference = await ref(vaultRef, pathString);
 		const data: ArrayBuffer = await this.app.vault.adapter.readBinary(files[index].path);
-	
+
 		//feed params into upload func from firebase
+		const remoteVaultRef: StorageReference = ref(vaultRef, `${remoteVaultName}`);
+		//const remoteVaultFileList: ListResult = await listAll(remoteVaultRef);
+		//const allRemoteFilesNames = await getAllRemoteFiles(remoteVaultFileList, []);
+		const allLocalFiles: TFile[] = await this.app.vault.getMarkdownFiles();
+		let allLocalFileNames:string[] = [];
+
+		for(let y = 0; y < allLocalFiles.length; y++ ){
+			allLocalFileNames.push(allLocalFiles[y].name);
+		}
+		
+
+		//just give up and trash all paths bruh
+
+		//const difference = allRemoteFilesNames.filter((element) => !allLocalFileNames.includes(element));
+		//this is terribly slow and I think exponential time comp, change to a hashmap at some point please
+		//replace ALL of this with JS Objects instead 
+
+
+
 		await uploadBytesResumable(pathRef, data).then((snapshot) => {
 			console.log(`file ${index} uploaded successfully`);
-		  });					
+		});
 	}
-	else{
+	else {
 		new Notice("Choose a target vault destination!");
 	}
 
 }
 
-async function importVault(localVault:string, remoteVault: string): Promise<void> {
+async function importVault(localVault: string, remoteVault: string): Promise<void> {
 	/**
 	 * @param localVault is the target local vault where files will be written to
 	 */
@@ -75,35 +127,35 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 
 	const vault: Vault = this.app.vault;
 
-	if(remoteDirFileList.prefixes.length > 0){
+	if (remoteDirFileList.prefixes.length > 0) {
 
-		for (let x = 0; x < remoteDirFileList.prefixes.length; x++){
+		for (let x = 0; x < remoteDirFileList.prefixes.length; x++) {
 			let remoteFolderPath = remoteDirFileList.prefixes[x].fullPath.split('/');
 			remoteFolderPath = remoteFolderPath.slice(2);
 
 			const localFolderPath: string = remoteFolderPath.join('/');
 
-		if(vault.getAbstractFileByPath(localFolderPath)){
-			//Item exists already
-			const fileOrFolder = vault.getAbstractFileByPath(localFolderPath);
+			if (vault.getAbstractFileByPath(localFolderPath)) {
+				//Item exists already
+				const fileOrFolder = vault.getAbstractFileByPath(localFolderPath);
 
-			if(fileOrFolder instanceof TFolder){
-				console.log(`${fileOrFolder.name} Exists`);
-				//rename folder
-				//modify the folder
-				const localfolder = fileOrFolder;
-				vault.rename(localfolder, localFolderPath);
-				//this...does nothing...bozo
+				if (fileOrFolder instanceof TFolder) {
+					console.log(`${fileOrFolder.name} Exists`);
+					//rename folder
+					//modify the folder
+					const localfolder = fileOrFolder;
+					vault.rename(localfolder, localFolderPath);
+					//this...does nothing...bozo
 				}
-		}
-		else{
-			try{
-				await vault.createFolder(localFolderPath);
 			}
-			catch(error){
-				console.log(error);
+			else {
+				try {
+					await vault.createFolder(localFolderPath);
+				}
+				catch (error) {
+					console.log(error);
+				}
 			}
-		}		
 
 			const localFolders = await listAll(remoteDirFileList.prefixes[x]);
 			console.log('Looping');
@@ -111,7 +163,7 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 			downloadToLocal(localVaultName, localFolders);
 			//nasty recursion
 		}
-	}	
+	}
 
 	for (let i = 0; i < remoteDirFileList.items.length; i++) {
 
@@ -120,52 +172,44 @@ async function downloadToLocal(localVaultName: string, remoteDirFileList: ListRe
 
 
 		const localFilePath: string = remoteFilePath.join('/');
-		const file: ArrayBuffer = await fetchFile( `${remoteDirFileList.items[i]}` );
+		const file: ArrayBuffer = await fetchFile(`${remoteDirFileList.items[i]}`);
 
 
-		if(vault.getAbstractFileByPath(localFilePath)){
+		if (vault.getAbstractFileByPath(localFilePath)) {
 			//Item exists already
 			const fileOrFolder = vault.getAbstractFileByPath(localFilePath);
 			//nest modification functions
-			
 
-			if (fileOrFolder instanceof TFile){
+
+			if (fileOrFolder instanceof TFile) {
 				console.log(`${fileOrFolder.name} Exists`);
 				const localfile = fileOrFolder;
 				vault.modifyBinary(localfile, file);
 
-
 				// await vault.process(localfile, (data) => {
 				// 	//use API https://github.com/google/diff-match-patch/wiki/API to find diffs and eventually show the user before modifying the text completely
-					
 				// 	const newData = file;
-
 				// 	return data.replace('','');
-
 				// })
-				
+
 			}
 		}
-		else{
+		else {
 			//file doesnt exist yet. 
 			try {
 				console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
 				await vault.createBinary(localFilePath, file);
-	
+
 			} catch (error) {
 
 				console.log(error);
 			}
 		}
-
-
-
-		
 	}
 
 }
 
-async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
+async function fetchFile(filePathString: string): Promise<ArrayBuffer> {
 
 	const filePathRef: StorageReference = ref(storage, filePathString);
 	const fileURL: string = await getDownloadURL(filePathRef);
@@ -177,8 +221,8 @@ async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
 		xhr.onload = (event) => {
 			const returnedFile: ArrayBuffer = xhr.response;
 			resolve(returnedFile);
-		}; 
-	
+		};
+
 		xhr.open('GET', fileURL);
 		xhr.send();
 	})
@@ -189,6 +233,8 @@ async function fetchFile(filePathString: string): Promise<ArrayBuffer>{
 }
 
 
+//#endregion
+
 export default class FlintPlugin extends Plugin {
 	settings: FlintPluginSettings;
 	statusBar: HTMLElement;
@@ -197,33 +243,33 @@ export default class FlintPlugin extends Plugin {
 		await this.loadSettings();
 		currentVaultName = await this.app.vault.getName();
 		remoteVaultName = this.settings.remoteConnectedVault;
-		
+
 		// This creates an icon in the left ribbon.
 		const uploadRibbon = this.addRibbonIcon('upload', 'Upload Files', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('Attempting Upload');
 
-			const files = this.app.vault.getMarkdownFiles()
-			
+			const files = this.app.vault.getMarkdownFiles();
+
 			for (let i = 0; i < files.length; i++) {
 
-			  try {
-				uploadFile(files, i);
-			  } catch (error) {
-				console.log(`Error: ${error}`);
-			  }
-			}			
+				try {
+					uploadFile(files, i);
+				} catch (error) {
+					console.log(`Error: ${error}`);
+				}
+			}
 		});
 		// Perform additional things with the ribbon
 		uploadRibbon.addClass('flint-upload-ribbon-class');
 
-		const downloadRibbon =  this.addRibbonIcon('download', 'Download Files', (evt: MouseEvent) => {
+		const downloadRibbon = this.addRibbonIcon('download', 'Download Files', (evt: MouseEvent) => {
 			//Check if target vault has been selected
-			if (remoteVaultName !== ''){
+			if (remoteVaultName !== '') {
 				new Notice('Downloadin!');
 				importVault(currentVaultName, remoteVaultName);
 			}
-			else{
+			else {
 				new Notice("Please select target cloud vault!");
 			}
 
@@ -232,14 +278,14 @@ export default class FlintPlugin extends Plugin {
 
 		this.statusBar = this.addStatusBarItem();
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		if (this.settings.remoteConnectedVault !== 'default'){
+		if (this.settings.remoteConnectedVault !== 'default') {
 			this.statusBar.setText(`Flint Remote Set to ${this.settings.remoteConnectedVault}`);
-			}
-		else{
+		}
+		else {
 			this.statusBar.setText(`Flint Remote Not Set`);
 		}
 
-		
+
 		// This adds an editor command that can perform some operation on the current editor instance
 		this.addCommand({
 			id: 'sample-editor-command',
@@ -271,15 +317,23 @@ export default class FlintPlugin extends Plugin {
 
 		this.addCommand({
 
-			id:'import-cloud-vault',
-			name:'Import Vault from Cloud',
+			id: 'import-cloud-vault',
+			name: 'Import Vault from Cloud',
 			callback: () => {
 				const selectionModal = new CloudVaultSelectModal(this.app, this.statusBar, this, this.settings);
-				selectionModal.open();							
+				selectionModal.open();
 			}
 
 		});
-		
+		this.registerView(
+			VIEW_TYPE_EXAMPLE,
+			(leaf) => new ExampleView(leaf)
+		);
+
+		this.addRibbonIcon("dice", "Activate view", () => {
+			this.activateView();
+		});
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new FlintSettingsTab(this.app, this));
 
@@ -293,11 +347,26 @@ export default class FlintPlugin extends Plugin {
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
-	async setRemoteDesintation(remoteName:string){
+	async setRemoteDesintation(remoteName: string) {
+		remoteVaultName = remoteName;
 		this.settings.remoteConnectedVault = remoteName;
 		this.statusBar.setText(`Flint Remote Set to ${remoteName}`);
 		new Notice(`Syncing to ${remoteName}`);
 		await this.saveSettings()
+	}
+
+
+	async activateView() {
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+
+		await this.app.workspace.getRightLeaf(false).setViewState({
+			type: VIEW_TYPE_EXAMPLE,
+			active: true,
+		});
+
+		this.app.workspace.revealLeaf(
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
+		);
 	}
 
 	onunload() {
@@ -314,34 +383,29 @@ export default class FlintPlugin extends Plugin {
 	}
 }
 
-
- 
 interface FirebaseVault {
 	title: string;
 	ref?: string;
-  }
-  
+}
 
 async function fetchFirebaseVaults(): Promise<FirebaseVault[]> {
 	/** Generate/Update list of ALL_FIREBASE_VAULTS 
 	 * @public  
-	 * 
 	 */
-	
+
 	const vaultList: ListResult = await listAll(vaultRef);
 
 	let ALL_FIREBASE_VAULTS: FirebaseVault[] = [];
 
-
-	for (let i=0; i < vaultList.prefixes.length; i++){
+	for (let i = 0; i < vaultList.prefixes.length; i++) {
 		const vaultName = `${vaultList.prefixes[i]}`.split('/').pop();
-		if (vaultName){
-			ALL_FIREBASE_VAULTS[i] = { title: vaultName, ref: `${vaultRef}`};
+		if (vaultName) {
+			ALL_FIREBASE_VAULTS[i] = { title: vaultName, ref: `${vaultRef}` };
 		}
 	}
 	return ALL_FIREBASE_VAULTS;
 
-} 
+}
 //contain a list of all vaults in the firebase bucket
 
 export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
@@ -349,22 +413,22 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 	pluginSettings: FlintPluginSettings;
 	plugin: FlintPlugin;
 
-	constructor(app: App, HTMLbar: HTMLElement, plugin: FlintPlugin,settings: FlintPluginSettings){
+	constructor(app: App, HTMLbar: HTMLElement, plugin: FlintPlugin, settings: FlintPluginSettings) {
 		super(app);
 		this.app = app;
 		this.HTMLStatusbar = HTMLbar;
 		this.pluginSettings = settings;
 		this.plugin = plugin;
-		
+
 	}
 	async getSuggestions(query: string): Promise<FirebaseVault[]> {
 		const RETRIEVED_FIREBASE_VAULTS = await fetchFirebaseVaults();
 
-		if(RETRIEVED_FIREBASE_VAULTS.length <= 0){
+		if (RETRIEVED_FIREBASE_VAULTS.length <= 0) {
 			new Notice('NO VAULTS PRESENT');
 		}
 		return RETRIEVED_FIREBASE_VAULTS.filter((vault) =>
-		vault.title.toLowerCase().includes(query.toLowerCase())
+			vault.title.toLowerCase().includes(query.toLowerCase())
 		);
 	}
 
@@ -380,12 +444,13 @@ export class CloudVaultSelectModal extends SuggestModal<FirebaseVault> {
 
 
 		remoteVaultName = vault.title;
-		
+
 		this.plugin.setRemoteDesintation(vault.title);
 		//changes the displayed current connected vault
-				
+
 	}
 }
+
 
 class FlintSettingsTab extends PluginSettingTab {
 	plugin: FlintPlugin;
@@ -399,33 +464,66 @@ class FlintSettingsTab extends PluginSettingTab {
 		const vaultList: ListResult = await listAll(vaultRef);
 
 		let ALL_FIREBASE_VAULTS: Record<string, string> = {};
-	
-		for (let i=0; i < vaultList.prefixes.length; i++){
+
+		for (let i = 0; i < vaultList.prefixes.length; i++) {
 			const vaultName = `${vaultList.prefixes[i]}`.split('/').pop();
-			if (vaultName){
+			if (vaultName) {
 				ALL_FIREBASE_VAULTS[vaultName] = vaultName;
 			}
 		}
-		return ALL_FIREBASE_VAULTS;		
+		return ALL_FIREBASE_VAULTS;
 	}
 
-	
-
 	async display(): Promise<void> {
-		const {containerEl} = this;
+		const { containerEl } = this;
 		const allVaultOptions = await this.#fetchVaultOptions();
 
 		containerEl.empty();
-				
+
 		new Setting(containerEl)
 			.setName('Current Connected Remote Vault')
 			.setDesc('Active Firebase Vault')
 
 			.addDropdown(options => options
 				.addOptions(allVaultOptions)
-				.onChange(async (name:string) => {
-					this.plugin.setRemoteDesintation(name);			
-				}));	
-		
+				.onChange(async (name: string) => {
+					this.plugin.setRemoteDesintation(name);
+				}));
+
 	}
 }
+
+import { ItemView, WorkspaceLeaf } from "obsidian";
+
+const VIEW_TYPE_EXAMPLE = "example-view";
+
+class ExampleView extends ItemView {
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	}
+
+	getViewType() {
+		return VIEW_TYPE_EXAMPLE;
+	}
+
+	getDisplayText() {
+		return "Example view";
+	}
+
+	async onOpen() {
+		//const {containerEl} = this;
+		const container = this.containerEl.children[1];
+		container.empty();
+		container.createEl("h4", { text: "Example view" });
+		container.createEl("br");
+		container.createEl("div", { text: "Other sample text" });
+		container.createEl("button", { text: "More sample text" });
+
+	}
+
+	async onClose() {
+		// Nothing to clean up.
+	}
+}
+
+
