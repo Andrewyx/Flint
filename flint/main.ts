@@ -91,14 +91,14 @@ export default class FlintPlugin extends Plugin {
 			}
 
 		});
-		this.registerView(
-			VIEW_TYPE_EXAMPLE,
-			(leaf) => new ExampleView(leaf)
-		);
+		// this.registerView(
+		// 	VIEW_TYPE_EXAMPLE,
+		// 	(leaf) => new ExampleView(leaf)
+		// );
 
-		this.addRibbonIcon("dice", "Activate view", () => {
-			this.activateView();
-		});
+		// this.addRibbonIcon("dice", "Activate view", () => {
+		// 	this.activateView();
+		// });
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new FlintSettingsTab(this.app, this));
@@ -122,18 +122,18 @@ export default class FlintPlugin extends Plugin {
 	}
 
 
-	async activateView() {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
+	// async activateView() {
+	// 	this.app.workspace.detachLeavesOfType(VIEW_TYPE_EXAMPLE);
 
-		await this.app.workspace.getRightLeaf(false).setViewState({
-			type: VIEW_TYPE_EXAMPLE,
-			active: true,
-		});
+	// 	await this.app.workspace.getRightLeaf(false).setViewState({
+	// 		type: VIEW_TYPE_EXAMPLE,
+	// 		active: true,
+	// 	});
 
-		this.app.workspace.revealLeaf(
-			this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
-		);
-	}
+	// 	this.app.workspace.revealLeaf(
+	// 		this.app.workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE)[0]
+	// 	);
+	// }
 
 	onunload() {
 
