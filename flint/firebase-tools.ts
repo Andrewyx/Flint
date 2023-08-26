@@ -5,12 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, getAuth, onAuthStateChanged, signI
 
 //Insert your firebaseConfig Key!
 export const firebaseConfig = {
-	apiKey: "AIzaSyDdAYtOpSAG1MQWqY6zHWbBSvqOCBqkEDs",
-	authDomain: "flint-4c10d.firebaseapp.com",
-	projectId: "flint-4c10d",
-	storageBucket: "flint-4c10d.appspot.com",
-	messagingSenderId: "847454040500",
-	appId: "1:847454040500:web:81298369de91f143d1c2e1"
+
 };
 
 
