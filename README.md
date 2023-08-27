@@ -32,13 +32,12 @@ _If you plan on completely managing your notes yourself via Firebase:_
 - The app works across devices but you will need to install the plugin on each device independently
 - Local vault names can be anything you would like as vault data is tied to the Firebase vault names instead.
 - Use the Download and Upload icons on the lefthand ribbon taskbar (PC) to get and set local changes to the remote vault (These are essentially equivalent to force pushes and pulls). On mobile, they can be accessed through the bottom right pull-up box (three lines).
-
-![image](https://github.com/Andrewyx/Flint/assets/72371419/75117ae2-3ac7-4ac2-adaa-fc149ed8af0a)
-
+ 
+![Screenshot 2023-08-26 212644](https://github.com/Andrewyx/Flint/assets/72371419/cf252aea-57c0-4cd3-868f-bbaf933246c8)
 
 You must connect to a remote vault before you can use the plugin. This can be done either in the Flint plugin settings menu or you can bind a hotkey to "Import Flint Vault from Cloud" to quickly swap between target remote vaults.
 
-![image](https://github.com/Andrewyx/Flint/assets/72371419/14947ff6-2fe6-4197-9f40-f7212b1594ab)
+![Screenshot 2023-08-26 132612](https://github.com/Andrewyx/Flint/assets/72371419/79374c28-bedb-48d2-8d57-fadc3ab82bd3)
 
 ## Troubleshooting <br>
 Since this is a prototype project, there are quite a few bugs that I am aware of already but here are a few solutions to some problems if you run into them.
