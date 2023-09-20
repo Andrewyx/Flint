@@ -107,11 +107,13 @@ export class FlintDataTransfer  {
 		const remoteVaultFileList: ListResult = await listAll(remoteVaultRef);
 
 		//pass in all files and prefixes (folders) into download function.
+		
 		this.downloadToLocal(localVault, remoteVaultFileList);
+
 	}
 
 	async downloadToLocal(localVaultName: string, remoteDirFileList: ListResult): Promise<void> {
-
+		console.log(remoteDirFileList);
 		const vault: Vault = this.plugin.app.vault;
 
 		if (remoteDirFileList.prefixes.length > 0) {
@@ -127,7 +129,7 @@ export class FlintDataTransfer  {
 					const fileOrFolder = vault.getAbstractFileByPath(localFolderPath);
 
 					if (fileOrFolder instanceof TFolder) {
-						console.log(`${fileOrFolder.name} Exists`);
+						// console.log(`${fileOrFolder.name} Exists`);
 						//rename folder
 						//modify the folder
 						const localfolder = fileOrFolder;
@@ -145,7 +147,7 @@ export class FlintDataTransfer  {
 				}
 
 				const localFolders = await listAll(remoteDirFileList.prefixes[x]);
-				console.log('Looping');
+				//console.log('Looping');
 
 				this.downloadToLocal(localVaultName, localFolders);
 				//nasty recursion
@@ -169,7 +171,7 @@ export class FlintDataTransfer  {
 
 
 				if (fileOrFolder instanceof TFile) {
-					console.log(`${fileOrFolder.name} Exists`);
+					//console.log(`${fileOrFolder.name} Exists`);
 					const localfile = fileOrFolder;
 					vault.modifyBinary(localfile, file);
 
@@ -184,7 +186,7 @@ export class FlintDataTransfer  {
 			else {
 				//file doesnt exist yet. 
 				try {
-					console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
+					//console.log(`Writting File Path from: ${remoteDirFileList.items[i]} to local path ${localFilePath}`);
 					await vault.createBinary(localFilePath, file);
 
 				} catch (error) {
@@ -200,7 +202,7 @@ export class FlintDataTransfer  {
 
 		const filePathRef: StorageReference = ref(storage, filePathString);
 		const fileURL: string = await getDownloadURL(filePathRef);
-		console.log(`${fileURL}`);
+		//console.log(`${fileURL}`);
 
 		const returnedFile = await new Promise<ArrayBuffer>((resolve, reject) => {
 			const xhr = new XMLHttpRequest();

@@ -11,8 +11,12 @@
             "id": "fb9b3a8841241261",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "HTDD/TestFolder/Test File.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -81,6 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "HTDD/TestFolder/Test File.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -97,6 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "HTDD/TestFolder/Test File.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -118,7 +124,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {}
+              "state": {
+                "file": "HTDD/TestFolder/Test File.md"
+              }
             }
           }
         ],
@@ -140,40 +148,42 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9c8a779a292b7f23",
+  "active": "fb9b3a8841241261",
   "lastOpenFiles": [
+    "CPSC110/Lecture 1 Notes.md",
+    "HTDD/TestFolder/Test File.md",
+    "HTDD/TestFolder",
+    "HDTF/Stub.md",
+    "HDTF/Signatures.md",
+    "CPSC110/Value.md",
+    "HTDD/Enumeration.md",
     "Manifesto of the Communist Party.md",
-    "EMPTY FILEs.md",
-    "what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "cool folder/cool nested FOLDER/This note is going into the depths.md",
+    "CPSC110/Search and sprawl.md",
+    "CPSC110/Primitives.md",
+    "CPSC110/Parameters.md",
+    "CPSC110/Operand.md",
+    "HDTF/Type.md",
+    "HTDD/Itemization.md",
+    "HTDD/HTDD Type Comments.md",
+    "CPSC110/If Statements.md",
+    "HTDD/HTDD Template.md",
+    "HDTF/Purpose.md",
+    "CPSC110/Functions.md",
+    "HTDD/HTDD Procedure.md",
+    "HDTF/Inventory - Template & Constants.md",
+    "CPSC110/Expressions.md",
+    "CPSC110/Cond.md",
+    "HTDD/HTDD Interpretation.md",
+    "HDTF/HTDF Procedure.md",
+    "CPSC110/Booleans.md",
+    "HTDD",
+    "HDTF",
+    "CPSC110",
     "what about this folder",
     "cool folder/cool nested FOLDER",
     "cool folder",
-    "Other files that I added last second too.md",
-    "And this new one too.md",
-    "2023-08-04.md",
-    "Untitled/this hidden one too.md",
-    "what about this folder/this is unexpected/AH HA EXPECT THIS.md",
     "Untitled",
     "OTHER COOL FILES",
-    "and this file.md",
-    "coolest folder/cool nested FOLDER/This note is going into the depths.md",
-    "test file.md",
-    "coolest folder/cool nested FOLDER",
-    "coolest folder",
-    "what about this folder/and this file.md",
-    "what about this folder/this is unexpected",
-    "MY CODE FILE.md",
-    "other cool folder/So how about this set of notes.md",
-    "other cool folder",
-    "FireVault/what about this folder/this is unexpected/AH HA EXPECT THIS.md",
-    "FireVault/what about this folder/this is unexpected",
-    "FireVault/what about this folder/and this file.md",
-    "FireVault/cool folder/cool nested FOLDER/This note is going into the depths.md",
-    "FireVault/what about this folder/HOW ABOUT THIS FILE THEN.md",
-    "FireVault/test file.md",
-    "FireVault/Manifesto of the Communist Party.md",
-    "FireVault/MY CODE FILE.md",
-    "FireVault/2023-08-04.md"
+    "coolest folder/cool nested FOLDER"
   ]
 }
